@@ -15,7 +15,7 @@ function fea_map_addon_with_fb() {
 
 	// Map settings for parent shortcode.
 	fusion_builder_map(
-		array(
+		array( 
 			'name'          => esc_attr__( 'Fancy Tabs', 'fancy-elements-avada' ),
 			'shortcode'     => 'fea_fancy_tabs',
 			'multi'         => 'multi_element_parent',
