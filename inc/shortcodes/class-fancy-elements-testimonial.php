@@ -16,25 +16,25 @@ class Fancy_Elements_Testimonial {
 	 *
 	 * @access private
 	 * @since 1.0
-	 * @var int
+	 * @var array
 	 */
-	protected $parent_args;
+	protected $parent_args = [];
 
 	/**
 	 * Child shortcode params.
 	 *
 	 * @access private
 	 * @since 1.0
-	 * @var int
+	 * @var array
 	 */
-	protected $child_args;
+	protected $child_args = [];
 
 	/**
 	 * Instance of shortcode.
 	 *
 	 * @access private
 	 * @since 1.0
-	 * @var int
+	 * @var Fancy_Elements_Testimonial
 	 */
 	private static $instance;
 
@@ -53,6 +53,7 @@ class Fancy_Elements_Testimonial {
 	 * @static
 	 * @access public
 	 * @since 1.0
+	 * @return Fancy_Elements_Testimonial
 	 */
 	public static function get_instance() {
 
@@ -71,6 +72,7 @@ class Fancy_Elements_Testimonial {
 	public function __construct() {
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		add_action( 'wp_enqueue_scripts', [ $this, 'live_scripts' ], 1000 );
 
 		add_shortcode( 'fea_fancy_testimonial', array( $this, 'render_parent' ) );
 		add_shortcode( 'fea_fancy_testimonial_child', array( $this, 'render_child' ) );
@@ -85,15 +87,23 @@ class Fancy_Elements_Testimonial {
 	 */
 	public function enqueue_scripts() {
 
-		wp_enqueue_style( 'testimonial-css', plugin_dir_url( __DIR__ ) . 'assets/css/testimonial.css', array(), '1.0.0' );
+		wp_enqueue_style( 'testimonial-css', plugin_dir_url( __DIR__ ) . 'assets/css/testimonial.css', array(), time());
 		wp_enqueue_style( 'owl-carousel-css', plugin_dir_url( __DIR__ ) . 'assets/css/owl.carousel.css', array());
-		wp_enqueue_script( 'testimonial-js', plugin_dir_url( __DIR__ ) . 'assets/js/testimonial.js', array(), '1.0', true );
-		wp_enqueue_script( 'owl-carousel-js', plugin_dir_url( __DIR__ ) . 'assets/js/owl.carousel.min.js');
-
+		wp_enqueue_script( 'testimonial-js', plugin_dir_url( __DIR__ ) . 'assets/js/testimonial.js', array('jquery','owl-carousel-js'), time(), true );
+		wp_enqueue_script( 'owl-carousel-js', plugin_dir_url( __DIR__ ) . 'assets/js/owl.carousel.min.js', array(), '1.0.0', true);
 	}
 
-
-
+	/**
+	 * Enqueue live script
+	 *
+	 * @access public
+	 * @since 1.0
+	 */
+	public function live_scripts()
+	{
+		wp_enqueue_script( 'fea-view-testimonial', plugin_dir_url(__DIR__) . 'assets/view/view-testimonials-fancy.js', array('jquery','owl-carousel-js'), time(), true);
+	}
+	
 	/**
 	 * Render the parent shortcode.
 	 *
@@ -103,9 +113,8 @@ class Fancy_Elements_Testimonial {
 	 * @param  string $content Content between shortcode.
 	 * @return string          HTML output.
 	 */
-	public function render_parent( $args, $content = '' ) {
+	public function render_parent( $args, $content = '' ) {		global $fusion_settings;
 
-		global $fusion_settings;
 
 		$html     = '';
 		$defaults = FusionBuilder::set_shortcode_defaults(
@@ -116,12 +125,10 @@ class Fancy_Elements_Testimonial {
 				'captioncolor'      => '',
 				'titlecolor'        => '',
 				'textcolor'         => '',
-				'heading_size'      => '',
+				'heading_size'      => '3', // Default heading size
 			),
 			$args
 		);
-
-		extract( $defaults );
 
 		$this->parent_args = $defaults;
 
@@ -157,14 +164,13 @@ class Fancy_Elements_Testimonial {
 
 		$html = '
 		' . $styles . '
-		<div class="owl-carousel fea-testimonialv1 ' . esc_attr( $testimonial_class_wrapper ) . ' ' . $class . '" id=' . esc_attr( $id ) . '>
+		<div class="owl-carousel fea-testimonialv1 ' . esc_attr( $testimonial_class_wrapper ) . ' ' . esc_attr( $this->parent_args['class'] ) . '" id="' . esc_attr( $this->parent_args['id'] ) . '">
 			' . do_shortcode( $content ) . '
 		</div>';
 
 		return $html;
 
 	}
-
 
 	/**
 	 * Render the child shortcode.
@@ -187,27 +193,27 @@ class Fancy_Elements_Testimonial {
 			$args
 		);
 
-		extract( $defaults );
-
 		$this->child_args = $defaults;
 
-			$html = '<div class="item">
+		$heading_size = isset( $this->parent_args['heading_size'] ) ? $this->parent_args['heading_size'] : '3';
 
-			<!-- FEA testimonial Item start -->
-			<div class="fea-testimonial-item">
-			<div class="fea-testimonial-item-caption">
-			<p>' . $content . '</p>
-			</div>
-			<div class="fea-testimonial-item-info">
-			<div class="fea-testimonial-item-view"> <img src="' . $this->child_args['fea_testimonial_image'] . '" alt=""> </div>
-			<div class="fea-testimonial-item-head">
-			<h' . $this->parent_args['heading_size'] . ' class="title">' . esc_html( $this->child_args['fea_testimonial_title'] ) . '</h' . $this->parent_args['heading_size'] . '>
-			<p class="caption">' . esc_html( $this->child_args['fea_testimonial_caption'] ) . '</p>
-			</div>
-			</div>
-			</div>
-			<!-- FEA testimonial Item end -->
-			</div>';
+		$html = '<div class="item">
+
+		<!-- FEA testimonial Item start -->
+		<div class="fea-testimonial-item">
+		<div class="fea-testimonial-item-caption">
+		<p>' . ( $content ) . '</p>
+		</div>
+		<div class="fea-testimonial-item-info">
+		<div class="fea-testimonial-item-view"> <img src="' . esc_url( $this->child_args['fea_testimonial_image'] ) . '" alt=""> </div>
+		<div class="fea-testimonial-item-head">
+		<h' . esc_attr( $heading_size ) . ' class="title">' . esc_html( $this->child_args['fea_testimonial_title'] ) . '</h' . esc_attr( $heading_size ) . '>
+		<p class="caption">' . esc_html( $this->child_args['fea_testimonial_caption'] ) . '</p>
+		</div>
+		</div>
+		</div>
+		<!-- FEA testimonial Item end -->
+		</div>';
 
 		return $html;
 

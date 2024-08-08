@@ -1,6 +1,6 @@
 <?php
 /**
- * Class responsible for the fancy time line layout 2.
+ * Class responsible for the fancy timeline layout 2.
  *
  * @author    WP Square
  * @package   fancy-elements-avada
@@ -16,25 +16,25 @@ class Fancy_Elements_Timeline_V2 {
 	 *
 	 * @access private
 	 * @since 1.0
-	 * @var int
+	 * @var array
 	 */
-	protected $parent_args;
+	protected $parent_args = array();
 
 	/**
 	 * Child shortcode params.
 	 *
 	 * @access private
 	 * @since 1.0
-	 * @var int
+	 * @var array
 	 */
-	protected $child_args;
+	protected $child_args = array();
 
 	/**
 	 * Instance of shortcode.
 	 *
 	 * @access private
 	 * @since 1.0
-	 * @var int
+	 * @var Fancy_Elements_Timeline_V2
 	 */
 	private static $instance;
 
@@ -53,6 +53,7 @@ class Fancy_Elements_Timeline_V2 {
 	 * @static
 	 * @access public
 	 * @since 1.0
+	 * @return Fancy_Elements_Timeline_V2
 	 */
 	public static function get_instance() {
 
@@ -71,12 +72,12 @@ class Fancy_Elements_Timeline_V2 {
 	public function __construct() {
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
-
+		add_action( 'wp_enqueue_scripts', [ $this, 'live_scripts' ], 1000 );
 		add_shortcode( 'fea_fancy_timeline_v2', array( $this, 'render_parent' ) );
 		add_shortcode( 'fea_fancy_timeline_v2_child', array( $this, 'render_child' ) );
-
 	}
 
+	
 	/**
 	 * Enqueue scripts & styles.
 	 *
@@ -85,19 +86,28 @@ class Fancy_Elements_Timeline_V2 {
 	 */
 	public function enqueue_scripts() {
 
-		wp_enqueue_style( 'fea-style', plugin_dir_url( __DIR__ ) . 'assets/css/fea-style.css', array(), '1.0.0' );
+		wp_enqueue_style( 'fea-style', plugin_dir_url( __DIR__ ) . 'assets/css/fea-style.css', array(), time() );
 	}
 
-
+	/**
+	 * Enqueue live script
+	 *
+	 * @access public
+	 * @since 1.0
+	 */
+	public function live_scripts()
+	{
+		wp_enqueue_script( 'fea-view-timelinev2', plugin_dir_url(__DIR__) . 'assets/view/view-timelinev2-fancy.js', array('jquery'), time(), true);
+	}
 
 	/**
 	 * Render the parent shortcode.
 	 *
 	 * @access public
 	 * @since 1.0
-	 * @param  array  $args    Shortcode parameters.
-	 * @param  string $content Content between shortcode.
-	 * @return string          HTML output.
+	 * @param  array  	 $args    Shortcode parameters.
+	 * @param  string 	 $content Content between shortcode.
+	 * @return string    HTML output.
 	 */
 	public function render_parent( $args, $content = '' ) {
 
@@ -117,7 +127,7 @@ class Fancy_Elements_Timeline_V2 {
 				'textcolor'         => '',
 				'readmorebg'		=> '',
 				'readmoretextcolor' => '',
-				'heading_size'      => '',
+				'heading_size'      => '3',
 			),
 			$args
 		);
@@ -190,9 +200,9 @@ class Fancy_Elements_Timeline_V2 {
 	 *
 	 * @access public
 	 * @since 1.0
-	 * @param  array  $args   Shortcode parameters.
-	 * @param  string $content Content between shortcode.
-	 * @return string         HTML output.
+	 * @param  array  		$args   Shortcode parameters.
+	 * @param  string 		$content Content between shortcode.
+	 * @return string       HTML output.
 	 */
 	public function render_child( $args, $content = '' ) {
 
@@ -211,6 +221,21 @@ class Fancy_Elements_Timeline_V2 {
 		extract( $defaults );
 
 		$this->child_args = $defaults;
+		// Ensure parent_args is set with default values if not already set
+		if ( empty( $this->parent_args ) ) {
+			$this->parent_args = array(
+				'heading_size'      => '3',
+				'primarycolor'      => '',
+				'bgcolor'           => '',
+				'datebgcolor'       => '',
+				'datecolor'         => '',
+				'imagetitlecolor'   => '',
+				'titlecolor'        => '',
+				'textcolor'         => '',
+				'readmorebg'		=> '',
+				'readmoretextcolor' => '',
+			);
+		}
 
 		if ( '' === $this->child_args['fea_timeline_image'] ) {
 
@@ -238,7 +263,7 @@ class Fancy_Elements_Timeline_V2 {
 					<a class="bnt-more" href="' . esc_url( $this->child_args['fea_timeline_rm_link'] ) . '">' . esc_html( $this->child_args['fea_timeline_rm_text'] ) . '</a>
 				</div>
 
-			</div>   ';
+			</div>';
 		}
 
 		return $html;
@@ -246,3 +271,6 @@ class Fancy_Elements_Timeline_V2 {
 	}
 
 }
+
+// Initialize the Fancy Elements Timeline V2 class.
+Fancy_Elements_Timeline_V2::get_instance();

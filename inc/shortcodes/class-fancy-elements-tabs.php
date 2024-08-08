@@ -109,7 +109,6 @@ class Fancy_Elements_Tabs {
 	 * @since 1.0
 	 */
 	public static function get_instance() {
-
 		// If an instance hasn't been created and set to $instance create an instance and set it to $instance.
 		if ( null === self::$instance ) {
 			self::$instance = new Fancy_Elements_Tabs();
@@ -125,6 +124,7 @@ class Fancy_Elements_Tabs {
 	public function __construct() {
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		add_action( 'wp_enqueue_scripts', [ $this, 'live_scripts' ], 1000 );
 
 		add_filter( 'fusion_attr_fancy-tabs-shortcode-link', array( $this, 'fancy_link_attr' ) );
 		add_filter( 'fusion_attr_fancy-tabs-shortcode-tab', array( $this, 'fancy_tab_attr' ) );
@@ -135,8 +135,8 @@ class Fancy_Elements_Tabs {
 		add_shortcode( 'fea_fancy_tabs', array( $this, 'fea_fancy_tabs' ) );
 		add_shortcode( 'fea_fancy_tab', array( $this, 'fea_fancy_tab' ) );
 
-	}
 
+	}
 
 	/**
 	 * Enqueue scripts & styles.
@@ -145,27 +145,33 @@ class Fancy_Elements_Tabs {
 	 * @since 1.0
 	 */
 	public function enqueue_scripts() {
-
-		wp_enqueue_style( 'fea-style', plugin_dir_url( __DIR__ ) . 'assets/css/fea-style.css', array(), '1.0.0' );
-
-		wp_enqueue_script( 'bootstrap-transition', get_template_directory_uri() . '/includes/lib/assets/min/js/library/bootstrap.transition.js', array(), '3.3.6', true );
-		wp_enqueue_script( 'bootstrap-tab', get_template_directory_uri() . '/includes/lib/assets/min/js/library/bootstrap.tab.js', array( 'bootstrap-transition' ), '3.1.1', true );
+		wp_enqueue_style ( 'fea-style', plugin_dir_url( __DIR__ ) . 'assets/css/fea-style.css', array(), time());
+		wp_enqueue_script( 'bootstrap-transition', get_template_directory_uri() . '/includes/lib/assets/min/js/library/bootstrap.transition.js', array(), time(), true );
+		wp_enqueue_script( 'bootstrap-tab', get_template_directory_uri() . '/includes/lib/assets/min/js/library/bootstrap.tab.js', array( 'bootstrap-transition' ), time(), true );
 		wp_enqueue_script( 'fea-main-js', plugin_dir_url( __DIR__ ) . 'assets/js/fea-main.js', array( 'jquery', 'bootstrap-tab' ), '1.0', true );
-
 	}
 
-
 	/**
-	 * Render the parent shortcode.
+	 * Enqueue live script
 	 *
 	 * @access public
 	 * @since 1.0
-	 * @param  array  $args    Shortcode parameters.
+	 */
+	public function live_scripts()
+	{
+		wp_enqueue_script( 'fusion-builder-view-tabs', plugin_dir_url(__DIR__) . 'assets/view/view-tabs-fancy.js', array('jquery'), time(), true);
+	}
+
+	/**
+	 * Render the parent shortcode.
+	 *	
+	 * @access public
+	 * @since  1.0
+	 * @param  array 			 $args    Shortcode parameters.
 	 * @param  string $content Content between shortcode.
 	 * @return string          HTML output.
 	 */
 	public function render_parent( $args, $content = '' ) {
-
 		global $fusion_settings;
 
 		$html     = '';
@@ -211,7 +217,7 @@ class Fancy_Elements_Tabs {
 		$html = '
 		<div class="fea-fancy-tabs ' . esc_attr( $class ) . ' ' . esc_attr( $this->tabs_identifier ) . '"  ' . ( '' !== $id ? $custom_id : '' ) . '>
 			<div ' . FusionBuilder::attributes( 'fea-fancy-tabs-content-list' ) . '>' . $styles . '
-				<ul ' . FusionBuilder::attributes( 'fea-fancy-tabs-content-menu fea-fancy-tab-function' ) . '>';
+			<ul '  . FusionBuilder::attributes( 'fea-fancy-tabs-content-menu fea-fancy-tab-function' ) . '>';
 
 		$is_active_tab = $this->parent_args['active_tab'];
 
@@ -325,6 +331,7 @@ class Fancy_Elements_Tabs {
 	 * @return string         HTML output.
 	 */
 	public function render_child( $args, $content = '' ) {
+	
 
 		$defaults = FusionBuilder::set_shortcode_defaults(
 			array(
@@ -430,7 +437,6 @@ class Fancy_Elements_Tabs {
 
 		extract( $defaults );
 		$this->fusion_fancy_tab_args = $defaults;
-
 		$atts = $defaults;
 
 		// Create unique tab id for linking.
@@ -448,9 +454,6 @@ class Fancy_Elements_Tabs {
 
 		return do_shortcode( $shortcode_wrapper );
 	}
-
-
-
 
 	/**
 	 * Parses the tab parameters.
