@@ -507,8 +507,8 @@ timeline v2 element
 */
 
 .fea-timelinev2-wrapper {
-	max-width: 1100px;
-	margin: 0 auto;
+    max-width: 1100px;
+    margin: 0px; 
 }
 
 .fea-timelinev2-wrapper .timeline {

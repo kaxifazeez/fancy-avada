@@ -71,9 +71,9 @@ class Fancy_Elements_Timeline_V1 {
 	public function __construct() {
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		add_action( 'wp_enqueue_scripts', [ $this, 'live_scripts' ], 1000 );
 		add_shortcode( 'fea_fancy_timeline_v1', array( $this, 'render_parent' ) );
 		add_shortcode( 'fea_fancy_timeline_v1_child', array( $this, 'render_child' ) );
-
 	}
 
 	/**
@@ -84,11 +84,20 @@ class Fancy_Elements_Timeline_V1 {
 	 */
 	public function enqueue_scripts() {
 
-		wp_enqueue_style( 'fea-style', plugin_dir_url( __DIR__ ) . 'assets/css/fea-style.css', array(), '1.0.0' );
-
+		wp_enqueue_style( 'fea-style', plugin_dir_url( __DIR__ ) . 'assets/css/fea-style.css', array(), time() );
 	}
 
+	/**
+	 * Enqueue live script
+	 *
+	 * @access public
+	 * @since 1.0
+	 */	
+	public function live_scripts()
+	{
+		wp_enqueue_script( 'fea-view-timelinev1', plugin_dir_url(__DIR__) . 'assets/view/view-timelinev1-fancy.js', array('jquery'), time(), true);
 
+	}
 
 	/**
 	 * Render the parent shortcode.
